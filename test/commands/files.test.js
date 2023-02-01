@@ -342,7 +342,7 @@ describe('Files', () => {
 	leche.withData([
 		'files:lock',
 		'files:update-lock',
-	], function (command) {
+	], function(command) {
 		describe(command, () => {
 			let fileId = '1234567890',
 				expireTime = '2030-01-01T08:00:00+00:00',
@@ -429,7 +429,7 @@ describe('Files', () => {
 	leche.withData([
 		'files:comments',
 		'comments:list'
-	], function (command) {
+	], function(command) {
 		describe(command, () => {
 			let fileId = '1234567890',
 				fixture = getFixture('comments/get_files_id_comments_page_1'),
@@ -481,7 +481,7 @@ describe('Files', () => {
 	leche.withData([
 		'files:collaborations',
 		'files:collaborations:list'
-	], function (command) {
+	], function(command) {
 		describe(command, () => {
 			let fileId = '1234567890',
 				fixture = getFixture('files/get_files_id_collaborations_page_1'),
@@ -725,7 +725,7 @@ describe('Files', () => {
 	leche.withData([
 		'files:metadata',
 		'files:metadata:get-all'
-	], function (command) {
+	], function(command) {
 		describe(command, () => {
 			let fileId = '123456789',
 				getAllMetadataFixture = getFixture('files/get_files_id_metadata'),
@@ -750,7 +750,7 @@ describe('Files', () => {
 	leche.withData([
 		'files:metadata:remove',
 		'files:metadata:delete'
-	], function (command) {
+	], function(command) {
 		describe(command, () => {
 			let fileId = '1234567890',
 				metadataScope = 'enterprise',
@@ -877,7 +877,7 @@ describe('Files', () => {
 	leche.withData([
 		'files:metadata:add',
 		'files:metadata:create'
-	], function (command) {
+	], function(command) {
 		describe(command, () => {
 			let fileId = '1234567890',
 				metadataScope = 'enterprise',
@@ -1027,7 +1027,7 @@ describe('Files', () => {
 		'files:share',
 		'files:shared-links:create',
 		'files:shared-links:update'
-	], function (command) {
+	], function(command) {
 		describe(command, () => {
 			let fileId = '1234567890',
 				unsharedDate = '2030-11-18T19:44:17+00:00',
@@ -1125,7 +1125,7 @@ describe('Files', () => {
 	leche.withData([
 		'files:unshare',
 		'files:shared-links:delete'
-	], function (command) {
+	], function(command) {
 		describe(command, () => {
 			let fileId = '1234567809',
 				getFileFixture = getFixture('files/get_files_id');
@@ -1173,7 +1173,7 @@ describe('Files', () => {
 	leche.withData([
 		'files:tasks',
 		'files:tasks:list'
-	], function (command) {
+	], function(command) {
 		describe(command, () => {
 			let fileId = '1234567890',
 				fixture = getFixture('files/get_files_id_tasks_page_1'),
@@ -1225,7 +1225,7 @@ describe('Files', () => {
 	leche.withData([
 		'files:versions',
 		'files:versions:list'
-	], function (command) {
+	], function(command) {
 		describe(command, () => {
 			let fileId = '1234567890',
 				fixture = getFixture('files/get_files_id_versions_page_1'),
@@ -1480,9 +1480,8 @@ describe('Files', () => {
 			yamlOutput = getFixture('output/files_versions_upload_yaml.txt');
 		test
 			.nock(TEST_UPLOAD_ROOT, api => api
-				.post(`/2.0/files/${fileId}/content`, function (body) {
-					try
-					{
+				.post(`/2.0/files/${fileId}/content`, function(body) {
+					try {
 						let lines = body.split(/\r?\n/u);
 						assert.match(lines[0], /^-+\d+$/u);
 						assert.equal(lines[1], 'Content-Disposition: form-data; name="attributes"');
@@ -1495,9 +1494,7 @@ describe('Files', () => {
 						assert.equal(lines[7], '');
 						assert.equal(lines[8], testFileContent);
 						assert.match(lines[9], /^-+\d+-+$/u);
-					}
-					catch (error)
-					{
+					} catch (error) {
 						return false;
 					}
 					return true;
@@ -1518,9 +1515,8 @@ describe('Files', () => {
 			});
 		test
 			.nock(TEST_UPLOAD_ROOT, api => api
-				.post(`/2.0/files/${fileId}/content`, function (body) {
-					try
-					{
+				.post(`/2.0/files/${fileId}/content`, function(body) {
+					try {
 						let lines = body.split(/\r?\n/u);
 						assert.match(lines[0], /^-+\d+$/u);
 						assert.equal(lines[1], 'Content-Disposition: form-data; name="attributes"');
@@ -1533,9 +1529,7 @@ describe('Files', () => {
 						assert.equal(lines[7], '');
 						assert.equal(lines[8], testFileContent);
 						assert.match(lines[9], /^-+\d+-+$/u);
-					}
-					catch (error)
-					{
+					} catch (error) {
 						return false;
 					}
 					return true;
@@ -1555,16 +1549,13 @@ describe('Files', () => {
 			});
 		test
 			.nock(TEST_UPLOAD_ROOT, api => api
-				.post(`/2.0/files/${fileId}/content`, function (body) {
-					try
-					{
+				.post(`/2.0/files/${fileId}/content`, function(body) {
+					try {
 						let lines = body.split(/\r?\n/u);
 						let attributes = JSON.parse(lines[3]);
 						assert.propertyVal(attributes, 'content_modified_at', contentModifiedAt);
 						assert.equal(lines[8], testFileContent);
-					}
-					catch (error)
-					{
+					} catch (error) {
 						return false;
 					}
 					return true;
@@ -1597,17 +1588,14 @@ describe('Files', () => {
 			yamlOutput = getFixture('output/files_upload_yaml.txt');
 		test
 			.nock(TEST_UPLOAD_ROOT, api => api
-				.post('/2.0/files/content', function (body) {
-					try
-					{
+				.post('/2.0/files/content', function(body) {
+					try {
 						let lines = body.split(/\r?\n/u);
 						let attributes = JSON.parse(lines[3]);
 						assert.propertyVal(attributes, 'name', testFileName);
 						assert.nestedPropertyVal(attributes, 'parent.id', parentFolderId);
 						assert.equal(lines[8], testFileContent);
-					}
-					catch (error)
-					{
+					} catch (error) {
 						return false;
 					}
 					return true;
@@ -1628,17 +1616,14 @@ describe('Files', () => {
 			});
 		test
 			.nock(TEST_UPLOAD_ROOT, api => api
-				.post('/2.0/files/content', function (body) {
-					try
-					{
+				.post('/2.0/files/content', function(body) {
+					try {
 						let lines = body.split(/\r?\n/u);
 						let attributes = JSON.parse(lines[3]);
 						assert.propertyVal(attributes, 'name', testFileName);
 						assert.nestedPropertyVal(attributes, 'parent.id', parentFolderId);
 						assert.equal(lines[8], testFileContent);
-					}
-					catch (error)
-					{
+					} catch (error) {
 						return false;
 					}
 					return true;
@@ -1657,17 +1642,14 @@ describe('Files', () => {
 			});
 		test
 			.nock(TEST_UPLOAD_ROOT, api => api
-				.post('/2.0/files/content', function (body) {
-					try
-					{
+				.post('/2.0/files/content', function(body) {
+					try {
 						let lines = body.split(/\r?\n/u);
 						let attributes = JSON.parse(lines[3]);
 						assert.propertyVal(attributes, 'name', testFileName);
 						assert.nestedPropertyVal(attributes, 'parent.id', parentFolderId);
 						assert.equal(lines[8], testFileContent);
-					}
-					catch (error)
-					{
+					} catch (error) {
 						return false;
 					}
 					return true;
@@ -1687,17 +1669,14 @@ describe('Files', () => {
 			});
 		test
 			.nock(TEST_UPLOAD_ROOT, api => api
-				.post('/2.0/files/content', function (body) {
-					try
-					{
+				.post('/2.0/files/content', function(body) {
+					try {
 						let lines = body.split(/\r?\n/u);
 						let attributes = JSON.parse(lines[3]);
 						assert.propertyVal(attributes, 'name', newFileName);
 						assert.nestedPropertyVal(attributes, 'parent.id', parentFolderId);
 						assert.equal(lines[8], testFileContent);
-					}
-					catch (error)
-					{
+					} catch (error) {
 						return false;
 					}
 					return true;
@@ -1718,18 +1697,15 @@ describe('Files', () => {
 			});
 		test
 			.nock(TEST_UPLOAD_ROOT, api => api
-				.post('/2.0/files/content', function (body) {
-					try
-					{
+				.post('/2.0/files/content', function(body) {
+					try {
 						let lines = body.split(/\r?\n/u);
 						let attributes = JSON.parse(lines[3]);
 						assert.propertyVal(attributes, 'content_created_at', contentCreatedAt);
 						assert.propertyVal(attributes, 'content_modified_at', contentModifiedAt);
 						assert.nestedPropertyVal(attributes, 'parent.id', parentFolderId);
 						assert.equal(lines[8], testFileContent);
-					}
-					catch (error)
-					{
+					} catch (error) {
 						return false;
 					}
 					return true;
@@ -1778,7 +1754,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -1814,7 +1790,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -1847,7 +1823,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -1879,7 +1855,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -1913,7 +1889,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -1952,7 +1928,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -2008,7 +1984,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -2044,7 +2020,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -2080,7 +2056,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -2114,7 +2090,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -2149,7 +2125,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -2185,7 +2161,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(fileDownloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -2243,7 +2219,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(downloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -2279,7 +2255,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(downloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
@@ -2315,7 +2291,7 @@ describe('Files', () => {
 			)
 			.nock(TEST_DOWNLOAD_ROOT, api => api
 				.get(downloadUrl)
-				.reply(200, function () {
+				.reply(200, function() {
 					return fs.createReadStream(testFilePath, 'utf8');
 				})
 			)
