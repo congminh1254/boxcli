@@ -18,10 +18,13 @@ describe('BoxCommand', () => {
 	});
 
 	describe('Command', () => {
-
+		/* eslint-disable promise/catch-or-return */
 		test
 			.stdout()
 			.stderr()
+			.finally(() => {
+				debug.disable();
+			})
 			.command([
 				'help',
 				'--verbose'
@@ -33,6 +36,7 @@ describe('BoxCommand', () => {
 				assert.include(debugLines[1], 'box:help');
 			})
 			.timeout(30000);
+		/* eslint-enable promise/catch-or-return */
 
 		test
 			.nock(TEST_API_ROOT, api => api

@@ -754,9 +754,13 @@ describe('Bulk', () => {
 				assert.equal(ctx.stderr, `Could not parse JSON input file ${invalidInputFilePath}${os.EOL}`);
 			});
 
+		/* eslint-disable promise/catch-or-return */
 		test
 			.stdout()
 			.stderr()
+			.finally(() => {
+				debug.disable();
+			})
 			.command([
 				'collaborations:add',
 				boxItemId,
@@ -773,6 +777,7 @@ describe('Bulk', () => {
 				assert.include(ctx.stderr, `BoxCLIError: Could not parse JSON input file ${invalidInputFilePath}${os.EOL}`);
 				assert.include(ctx.stderr, 'Caused by: SyntaxError: ');
 			});
+		/* eslint-disable promise/catch-or-return */
 
 		test
 			.nock(TEST_API_ROOT, api => api
