@@ -1,6 +1,5 @@
 'use strict';
 
-const BoxSDK = require('box-node-sdk').default;
 const testConfig = require('./test-config.json');
 
 const BOX_JWT_CONFIG_ENV_NAME = 'BOX_JWT_CONFIG';
@@ -87,48 +86,8 @@ function getAdminUserId() {
 	return adminUserId;
 }
 
-/**
- * Get Box SDK app client (enterprise service account)
- * @returns {Object} Box SDK client
- */
-function getAppClient() {
-	let jwtConfig = getJwtConfig();
-	let sdk = BoxSDK.getPreconfiguredInstance(jwtConfig);
-	return sdk.getAppAuthClient('enterprise');
-}
-
-/**
- * Get Box SDK user client for a specific user
- * @param {string} userID - User ID to get client for
- * @returns {Object} Box SDK client
- */
-function getUserClient(userID) {
-	let jwtConfig = getJwtConfig();
-	let sdk = BoxSDK.getPreconfiguredInstance(jwtConfig);
-	return sdk.getAppAuthClient('user', userID);
-}
-
-/**
- * Get Box SDK client for admin user
- * @returns {Object} Box SDK client
- */
-function getAdminClient() {
-	let adminUserId = getAdminUserId();
-	return getUserClient(adminUserId);
-}
-
-/**
- * Get enterprise ID from JWT config
- * @returns {string} Enterprise ID
- */
-function getEnterpriseId() {
-	return getJwtConfig().enterpriseID;
-}
-
 module.exports = {
-	getAppClient,
-	getUserClient,
-	getAdminClient,
-	getEnterpriseId,
+	getJwtConfig,
 	getAdminUserId,
 };
+

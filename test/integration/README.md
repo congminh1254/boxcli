@@ -1,10 +1,10 @@
 # Integration Tests
 
-This directory contains integration tests for the Box CLI that run against the actual Box API.
+This directory contains integration tests for the Box CLI that run against the actual Box API using CLI commands.
 
 ## Overview
 
-The integration tests are based on the testing approach used in [box-node-sdk](https://github.com/box/box-node-sdk/tree/main/tests/integration_test). These tests create real Box resources (users, files, folders, etc.) and verify the CLI functionality against them.
+The integration tests verify the CLI functionality by running actual Box CLI commands (e.g., `box users:get`, `box files:upload`) against the real Box API. These tests create real Box resources (users, files, folders, etc.) using the command-line interface to simulate user actions.
 
 ## Setup
 
@@ -79,13 +79,9 @@ test/integration/
 │   ├── file.test.js
 │   ├── folder.test.js
 │   └── user.test.js
-├── context.js           # Authentication and client setup
+├── context.js           # Authentication configuration helpers
 ├── lib/
 │   └── utils.js        # Utility functions
-├── objects/            # Test object factories
-│   ├── box-test-file.js
-│   ├── box-test-folder.js
-│   └── box-test-user.js
 ├── resources/          # Test files for upload
 │   └── test-file.txt
 ├── test-config.json    # Local configuration (not committed)
@@ -96,34 +92,54 @@ test/integration/
 
 Integration tests follow these patterns:
 
-1. **Setup**: Create test users and resources in `beforeAll()`
-2. **Test**: Execute test scenarios using Box SDK
-3. **Cleanup**: Dispose of test resources in `afterAll()`
+1. **Setup**: Configure CLI environment and create test users in `before()`
+2. **Test**: Execute CLI commands using `execSync()` to simulate user actions
+3. **Cleanup**: Delete test resources and clean up environment in `after()`
 
 Example:
 
 ```javascript
-const { getAppClient, getUserClient } = require('../context');
-const { createBoxTestUser, clearUserContent } = require('../objects/box-test-user');
+const { execSync } = require('node:child_process');
+const { getJwtConfig } = require('../context');
+const { randomName } = require('../lib/utils');
 
 const context = {};
 
-beforeAll(async () => {
-  let appClient = getAppClient();
-  let user = await createBoxTestUser(appClient);
-  let userClient = getUserClient(user.id);
-  context.user = user;
-  context.client = userClient;
+before(async function () {
+  // Set up CLI environment with JWT config
+  const jwtConfig = getJwtConfig();
+  const tempConfigPath = path.join(os.tmpdir(), `box-jwt-${Date.now()}.json`);
+  fs.writeFileSync(tempConfigPath, JSON.stringify(jwtConfig, null, 2));
+  
+  execSync(
+    `./bin/run configure:environments:add "${tempConfigPath}" --name="test-env" --set-as-current`,
+    { cwd: process.cwd(), stdio: 'pipe' }
+  );
+  
+  // Create test user using CLI
+  const userName = randomName();
+  const output = execSync(
+    `./bin/run users:create "${userName}" --json`,
+    { cwd: process.cwd(), encoding: 'utf8' }
+  );
+  context.testUser = JSON.parse(output);
 });
 
-afterAll(async () => {
-  await clearUserContent(context.client);
-  await context.user.dispose();
+after(async function () {
+  // Clean up using CLI commands
+  execSync(`./bin/run users:delete ${context.testUser.id} --force`, { stdio: 'pipe' });
+  execSync(`./bin/run configure:environments:delete "test-env"`, { stdio: 'pipe' });
 });
 
-describe('My Integration Tests', () => {
-  test('should do something', async () => {
-    // Test implementation
+describe('My Integration Tests', function () {
+  it('should perform user operation', function () {
+    // Run CLI command
+    const output = execSync(
+      `./bin/run users:get ${context.testUser.id} --json`,
+      { cwd: process.cwd(), encoding: 'utf8' }
+    );
+    const user = JSON.parse(output);
+    assert.equal(user.id, context.testUser.id);
   });
 });
 ```
@@ -139,11 +155,12 @@ These secrets should be configured in the repository settings.
 
 ## Best Practices
 
-1. **Always clean up**: Ensure all created resources are properly disposed in `afterAll()` hooks
-2. **Use test helpers**: Utilize the object factories in `objects/` for consistent resource creation
-3. **Isolate tests**: Each test should be independent and not rely on other tests
-4. **Handle errors**: Use try/finally blocks to ensure cleanup even if tests fail
-5. **Use unique names**: Test objects use random names to avoid conflicts
+1. **Always clean up**: Ensure all created resources are properly deleted using CLI commands in `after()` hooks
+2. **Isolate tests**: Each test should be independent and not rely on other tests
+3. **Handle errors**: Use try/catch blocks to ensure cleanup even if tests fail
+4. **Use unique names**: Test objects use random names to avoid conflicts
+5. **Test CLI output**: Parse JSON output from CLI commands to verify results
+6. **Simulate user actions**: Run actual CLI commands as a user would, rather than calling SDK functions directly
 
 ## Troubleshooting
 
