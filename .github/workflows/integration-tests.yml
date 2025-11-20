@@ -1,0 +1,35 @@
+name: integration-tests
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    # Only run if secrets are available
+    if: ${{ secrets.BOX_JWT_CONFIG != '' && secrets.BOX_ADMIN_USER_ID != '' }}
+    name: Integration Tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      - name: npm install
+        run: npm install
+      - name: Run integration tests
+        env:
+          BOX_JWT_CONFIG: ${{ secrets.BOX_JWT_CONFIG }}
+          BOX_ADMIN_USER_ID: ${{ secrets.BOX_ADMIN_USER_ID }}
+        run: npm run test:integration
