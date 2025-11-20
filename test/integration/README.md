@@ -93,12 +93,13 @@ test/integration/
 Integration tests follow these patterns:
 
 1. **Setup**: Configure CLI environment and create test users in `before()`
-2. **Test**: Execute CLI commands using `execSync()` to simulate user actions
+2. **Test**: Execute CLI commands using `@oclif/test` framework
 3. **Cleanup**: Delete test resources and clean up environment in `after()`
 
 Example:
 
 ```javascript
+const { test } = require('@oclif/test');
 const { execSync } = require('node:child_process');
 const { getJwtConfig } = require('../context');
 const { randomName } = require('../lib/utils');
@@ -132,15 +133,14 @@ after(async function () {
 });
 
 describe('My Integration Tests', function () {
-  it('should perform user operation', function () {
-    // Run CLI command
-    const output = execSync(
-      `./bin/run users:get ${context.testUser.id} --json`,
-      { cwd: process.cwd(), encoding: 'utf8' }
-    );
-    const user = JSON.parse(output);
-    assert.equal(user.id, context.testUser.id);
-  });
+  // Run CLI command using @oclif/test framework
+  test
+    .stdout()
+    .command(['users:get', () => context.testUser.id, '--json'])
+    .it('should get user information', (ctx) => {
+      const user = JSON.parse(ctx.stdout);
+      assert.equal(user.id, context.testUser.id);
+    });
 });
 ```
 
@@ -159,8 +159,9 @@ These secrets should be configured in the repository settings.
 2. **Isolate tests**: Each test should be independent and not rely on other tests
 3. **Handle errors**: Use try/catch blocks to ensure cleanup even if tests fail
 4. **Use unique names**: Test objects use random names to avoid conflicts
-5. **Test CLI output**: Parse JSON output from CLI commands to verify results
-6. **Simulate user actions**: Run actual CLI commands as a user would, rather than calling SDK functions directly
+5. **Use @oclif/test framework**: Leverage the `test.command()` API for cleaner test code
+6. **Test CLI output**: Parse JSON output from CLI commands to verify results
+7. **Simulate user actions**: Run actual CLI commands as a user would, rather than calling SDK functions directly
 
 ## Troubleshooting
 

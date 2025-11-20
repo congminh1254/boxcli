@@ -1,10 +1,11 @@
 'use strict';
 
+const { test } = require('@oclif/test');
 const assert = require('chai').assert;
-const { execSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+const { execSync } = require('node:child_process');
 const { getJwtConfig } = require('../context');
 const { randomName } = require('../lib/utils');
 
@@ -21,15 +22,10 @@ before(async function () {
 	context.envName = `test-env-${Date.now()}`;
 
 	// Add environment to CLI
-	try {
-		execSync(
-			`./bin/run configure:environments:add "${tempConfigPath}" --name="${context.envName}" --set-as-current`,
-			{ cwd: process.cwd(), stdio: 'pipe' }
-		);
-	} catch (error) {
-		console.error('Failed to configure environment:', error.message);
-		throw error;
-	}
+	execSync(
+		`./bin/run configure:environments:add "${tempConfigPath}" --name="${context.envName}" --set-as-current`,
+		{ cwd: process.cwd(), stdio: 'pipe' }
+	);
 
 	// Create a test user for the tests
 	const userName = randomName();
@@ -94,109 +90,130 @@ after(async function () {
 describe('Files CLI Integration Tests', function () {
 	this.timeout(60_000);
 
-	it('should upload and get file information using CLI', function () {
-		const testFilePath = path.join(__dirname, '../resources/test-file.txt');
+	test
+		.stdout()
+		.command([
+			'files:upload',
+			path.join(__dirname, '../resources/test-file.txt'),
+			`--parent-id=${() => context.testFolder.id}`,
+			`--as-user=${() => context.testUser.id}`,
+			'--json',
+		])
+		.it('should upload and get file information using CLI', async (ctx) => {
+			const uploadedFile = JSON.parse(ctx.stdout);
 
-		// Upload file
-		const uploadOutput = execSync(
-			`./bin/run files:upload "${testFilePath}" --parent-id=${context.testFolder.id} --as-user=${context.testUser.id} --json`,
-			{ cwd: process.cwd(), encoding: 'utf8' }
-		);
-		const uploadedFile = JSON.parse(uploadOutput);
-
-		try {
-			// Get file information
-			const getOutput = execSync(
-				`./bin/run files:get ${uploadedFile.id} --as-user=${context.testUser.id} --json`,
-				{ cwd: process.cwd(), encoding: 'utf8' }
-			);
-			const file = JSON.parse(getOutput);
-
-			assert.equal(file.id, uploadedFile.id);
-			assert.equal(file.type, 'file');
-			assert.equal(file.name, uploadedFile.name);
-		} finally {
-			// Clean up file
 			try {
-				execSync(
-					`./bin/run files:delete ${uploadedFile.id} --as-user=${context.testUser.id}`,
-					{ cwd: process.cwd(), stdio: 'pipe' }
-				);
-			} catch {
-				// File might already be deleted
+				// Get file information using test framework
+				const getOutput = await test
+					.stdout()
+					.command([
+						'files:get',
+						uploadedFile.id,
+						`--as-user=${context.testUser.id}`,
+						'--json',
+					])
+					.run();
+
+				const file = JSON.parse(getOutput.stdout);
+				assert.equal(file.id, uploadedFile.id);
+				assert.equal(file.type, 'file');
+				assert.equal(file.name, uploadedFile.name);
+			} finally {
+				// Clean up file
+				try {
+					execSync(
+						`./bin/run files:delete ${uploadedFile.id} --as-user=${context.testUser.id}`,
+						{ cwd: process.cwd(), stdio: 'pipe' }
+					);
+				} catch {
+					// File might already be deleted
+				}
 			}
-		}
-	});
+		});
 
-	it('should update file name using CLI', function () {
-		const testFilePath = path.join(__dirname, '../resources/test-file.txt');
+	test
+		.stdout()
+		.command([
+			'files:upload',
+			path.join(__dirname, '../resources/test-file.txt'),
+			`--parent-id=${() => context.testFolder.id}`,
+			`--as-user=${() => context.testUser.id}`,
+			'--json',
+		])
+		.it('should update file name using CLI', async (ctx) => {
+			const uploadedFile = JSON.parse(ctx.stdout);
 
-		// Upload file
-		const uploadOutput = execSync(
-			`./bin/run files:upload "${testFilePath}" --parent-id=${context.testFolder.id} --as-user=${context.testUser.id} --json`,
-			{ cwd: process.cwd(), encoding: 'utf8' }
-		);
-		const uploadedFile = JSON.parse(uploadOutput);
-
-		try {
-			const newName = 'renamed-file.txt';
-
-			// Update file name
-			const updateOutput = execSync(
-				`./bin/run files:update ${uploadedFile.id} --name="${newName}" --as-user=${context.testUser.id} --json`,
-				{ cwd: process.cwd(), encoding: 'utf8' }
-			);
-			const updatedFile = JSON.parse(updateOutput);
-
-			assert.equal(updatedFile.name, newName);
-		} finally {
-			// Clean up file
 			try {
-				execSync(
-					`./bin/run files:delete ${uploadedFile.id} --as-user=${context.testUser.id}`,
-					{ cwd: process.cwd(), stdio: 'pipe' }
-				);
-			} catch {
-				// File might already be deleted
+				const newName = 'renamed-file.txt';
+
+				// Update file name
+				const updateOutput = await test
+					.stdout()
+					.command([
+						'files:update',
+						uploadedFile.id,
+						`--name=${newName}`,
+						`--as-user=${context.testUser.id}`,
+						'--json',
+					])
+					.run();
+
+				const updatedFile = JSON.parse(updateOutput.stdout);
+				assert.equal(updatedFile.name, newName);
+			} finally {
+				// Clean up file
+				try {
+					execSync(
+						`./bin/run files:delete ${uploadedFile.id} --as-user=${context.testUser.id}`,
+						{ cwd: process.cwd(), stdio: 'pipe' }
+					);
+				} catch {
+					// File might already be deleted
+				}
 			}
-		}
-	});
+		});
 
-	it('should download file using CLI', function () {
-		const testFilePath = path.join(__dirname, '../resources/test-file.txt');
-		const downloadPath = path.join(os.tmpdir(), `downloaded-${Date.now()}.txt`);
+	test
+		.stdout()
+		.command([
+			'files:upload',
+			path.join(__dirname, '../resources/test-file.txt'),
+			`--parent-id=${() => context.testFolder.id}`,
+			`--as-user=${() => context.testUser.id}`,
+			'--json',
+		])
+		.it('should download file using CLI', async (ctx) => {
+			const uploadedFile = JSON.parse(ctx.stdout);
+			const downloadPath = path.join(os.tmpdir(), `downloaded-${Date.now()}.txt`);
 
-		// Upload file
-		const uploadOutput = execSync(
-			`./bin/run files:upload "${testFilePath}" --parent-id=${context.testFolder.id} --as-user=${context.testUser.id} --json`,
-			{ cwd: process.cwd(), encoding: 'utf8' }
-		);
-		const uploadedFile = JSON.parse(uploadOutput);
-
-		try {
-			// Download file
-			execSync(
-				`./bin/run files:download ${uploadedFile.id} --destination="${downloadPath}" --as-user=${context.testUser.id}`,
-				{ cwd: process.cwd(), stdio: 'pipe' }
-			);
-
-			// Verify file was downloaded
-			assert.isTrue(fs.existsSync(downloadPath));
-
-			// Clean up downloaded file
-			if (fs.existsSync(downloadPath)) {
-				fs.unlinkSync(downloadPath);
-			}
-		} finally {
-			// Clean up uploaded file
 			try {
-				execSync(
-					`./bin/run files:delete ${uploadedFile.id} --as-user=${context.testUser.id}`,
-					{ cwd: process.cwd(), stdio: 'pipe' }
-				);
-			} catch {
-				// File might already be deleted
+				// Download file
+				await test
+					.command([
+						'files:download',
+						uploadedFile.id,
+						`--destination=${downloadPath}`,
+						`--as-user=${context.testUser.id}`,
+					])
+					.run();
+
+				// Verify file was downloaded
+				assert.isTrue(fs.existsSync(downloadPath));
+
+				// Clean up downloaded file
+				if (fs.existsSync(downloadPath)) {
+					fs.unlinkSync(downloadPath);
+				}
+			} finally {
+				// Clean up uploaded file
+				try {
+					execSync(
+						`./bin/run files:delete ${uploadedFile.id} --as-user=${context.testUser.id}`,
+						{ cwd: process.cwd(), stdio: 'pipe' }
+					);
+				} catch {
+					// File might already be deleted
+				}
 			}
-		}
-	});
+		});
 });

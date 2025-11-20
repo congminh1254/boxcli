@@ -1,10 +1,11 @@
 'use strict';
 
+const { test } = require('@oclif/test');
 const assert = require('chai').assert;
-const { execSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+const { execSync } = require('node:child_process');
 const { getJwtConfig } = require('../context');
 const { randomName } = require('../lib/utils');
 
@@ -21,15 +22,10 @@ before(async function () {
 	context.envName = `test-env-${Date.now()}`;
 
 	// Add environment to CLI
-	try {
-		execSync(
-			`./bin/run configure:environments:add "${tempConfigPath}" --name="${context.envName}" --set-as-current`,
-			{ cwd: process.cwd(), stdio: 'pipe' }
-		);
-	} catch (error) {
-		console.error('Failed to configure environment:', error.message);
-		throw error;
-	}
+	execSync(
+		`./bin/run configure:environments:add "${tempConfigPath}" --name="${context.envName}" --set-as-current`,
+		{ cwd: process.cwd(), stdio: 'pipe' }
+	);
 
 	// Create a test user for the tests
 	const userName = randomName();
@@ -74,45 +70,35 @@ after(async function () {
 describe('Users CLI Integration Tests', function () {
 	this.timeout(60_000);
 
-	it('should get user information using CLI', function () {
-		const output = execSync(
-			`./bin/run users:get ${context.testUser.id} --json`,
-			{ cwd: process.cwd(), encoding: 'utf8' }
-		);
-
-		const user = JSON.parse(output);
-		assert.equal(user.id, context.testUser.id);
-		assert.equal(user.type, 'user');
-		assert.equal(user.name, context.testUser.name);
-	});
-
-	it('should update user information using CLI', function () {
-		const newName = 'Updated Test User';
-		const output = execSync(
-			`./bin/run users:update ${context.testUser.id} --name="${newName}" --json`,
-			{ cwd: process.cwd(), encoding: 'utf8' }
-		);
-
-		const updatedUser = JSON.parse(output);
-		assert.equal(updatedUser.name, newName);
-
-		// Verify the update
-		const verifyOutput = execSync(
-			`./bin/run users:get ${context.testUser.id} --json`,
-			{ cwd: process.cwd(), encoding: 'utf8' }
-		);
-		const user = JSON.parse(verifyOutput);
-		assert.equal(user.name, newName);
-	});
-
-	it('should list users using CLI', function () {
-		const output = execSync(`./bin/run users --json`, {
-			cwd: process.cwd(),
-			encoding: 'utf8',
+	test
+		.stdout()
+		.command(['users:get', () => context.testUser.id, '--json'])
+		.it('should get user information using CLI', (ctx) => {
+			const user = JSON.parse(ctx.stdout);
+			assert.equal(user.id, context.testUser.id);
+			assert.equal(user.type, 'user');
+			assert.equal(user.name, context.testUser.name);
 		});
 
-		const users = JSON.parse(output);
-		assert.isArray(users.entries);
-		assert.isTrue(users.entries.length > 0);
-	});
+	test
+		.stdout()
+		.command([
+			'users:update',
+			() => context.testUser.id,
+			'--name=Updated Test User',
+			'--json',
+		])
+		.it('should update user information using CLI', (ctx) => {
+			const updatedUser = JSON.parse(ctx.stdout);
+			assert.equal(updatedUser.name, 'Updated Test User');
+		});
+
+	test
+		.stdout()
+		.command(['users', '--json'])
+		.it('should list users using CLI', (ctx) => {
+			const users = JSON.parse(ctx.stdout);
+			assert.isArray(users.entries);
+			assert.isTrue(users.entries.length > 0);
+		});
 });
