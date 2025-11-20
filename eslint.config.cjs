@@ -46,5 +46,12 @@ module.exports = [
 			'mocha/no-setup-in-describe': 'off',
 		},
 	},
+	{
+		// Integration tests have top-level hooks for shared setup
+		files: ['test/integration/**/*.js'],
+		rules: {
+			'mocha/no-top-level-hooks': 'off',
+		},
+	},
 	prettier,
 ];
