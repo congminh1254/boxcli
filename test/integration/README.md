@@ -55,6 +55,8 @@ export BOX_ADMIN_USER_ID="<admin-user-id>"
 }
 ```
 
+**Note**: Keep your JWT configuration file outside of the repository to avoid accidentally committing credentials. The `jwt_file_path` should point to a location outside the project directory.
+
 ## Running Integration Tests
 
 ### Run all integration tests:

@@ -1,6 +1,6 @@
 'use strict';
 
-const BoxSDK = require('box-node-sdk');
+const BoxSDK = require('box-node-sdk').default;
 const testConfig = require('./test-config.json');
 
 const BOX_JWT_CONFIG_ENV_NAME = 'BOX_JWT_CONFIG';
